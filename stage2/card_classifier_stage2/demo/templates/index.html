@@ -1,0 +1,382 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>扑克牌智能识别与分拣系统</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+  <div class="bg-grid" aria-hidden="true"></div>
+
+  <header class="topbar">
+    <div class="brand">
+      <div class="logo" aria-hidden="true">♠<span>♥</span><span>♦</span>♣</div>
+      <div>
+        <h1>扑克牌智能识别与分拣系统</h1>
+        <p>Poker Card Recognition &amp; Sorting · 工程课程演示系统</p>
+      </div>
+    </div>
+    <div class="top-status">
+      <div class="status-item"><span class="status-dot" id="statusDot"></span><b id="statusText">空闲</b></div>
+      <div class="status-item"><span>模式</span><b id="modeText">模拟演示</b></div>
+      <div class="status-item"><span>批次</span><b id="batchTypeText">两副无王 104</b></div>
+      <div class="status-item"><span>模型</span><b id="modelText">HOG+SVM</b></div>
+    </div>
+  </header>
+
+  <nav class="tabbar">
+    <button class="tab active" data-page="workspace">识别工作台</button>
+    <button class="tab" data-page="experiments">模型实验</button>
+    <button class="tab" data-page="logs">日志与导出</button>
+    <button class="tab" data-page="guide">使用说明</button>
+    <div class="tab-spacer"></div>
+    <span class="camera-state" id="cameraState">摄像头：未打开</span>
+  </nav>
+
+  <main>
+    <!-- ============================ WORKSPACE ============================ -->
+    <section class="page active" id="page-workspace">
+      <div class="workspace">
+        <!-- left control -->
+        <aside class="panel controls">
+          <div class="panel-head"><h2>输入与控制</h2><span class="hint">真实推理</span></div>
+
+          <label class="field-label">牌组 / 批次配置</label>
+          <select id="configSelect"></select>
+          <div class="custom-config hidden" id="customConfig">
+            <label>副数 <input type="number" id="customDecks" min="1" max="8" value="2"></label>
+            <label>每副 Joker <input type="number" id="customJokers" min="0" max="4" value="0"></label>
+          </div>
+
+          <label class="field-label">识别模型</label>
+          <select id="modelSelect">
+            <option value="card">数字 + 花色（当前目标）</option>
+            <option value="suit">仅花色（4 类）</option>
+            <option value="hog_svm">HOG + SVM（整牌基线）</option>
+            <option value="ensemble">决策树集成（三模型容错）</option>
+            <option value="cnn">小型 CNN</option>
+            <option value="template">模板匹配</option>
+          </select>
+
+          <label class="field-label">图像来源</label>
+          <select id="sourceSelect">
+            <option value="synthetic">合成测试图（52 类均可覆盖）</option>
+            <option value="real">真实照片（跨设计测试）</option>
+          </select>
+
+          <div class="reject-box">
+            <label class="switch-row">
+              <input type="checkbox" id="rejectToggle" checked>
+              <span>启用置信度拒识</span>
+              <span class="muted" id="thresholdValue">0.990</span>
+            </label>
+            <input type="range" id="thresholdRange" min="0" max="1" step="0.005" value="0.99">
+            <label class="switch-row" style="margin-top:8px">
+              <input type="checkbox" id="oodToggle" checked>
+              <span>未知设计拒识（模板相似度）</span>
+            </label>
+            <p class="micro">阈值应在验证集选择。分数是相似度/softmax，不是概率。非标准牌面会先拒识，可登记自定义模板。</p>
+          </div>
+
+          <div class="button-grid">
+            <button class="primary" id="startBtn">▶ 开始识别</button>
+            <button class="ghost" id="pauseBtn" disabled>⏸ 暂停</button>
+            <button class="ghost" id="resumeBtn" disabled>⏵ 继续</button>
+            <button class="ghost" id="stopBtn" disabled>■ 停止</button>
+            <button class="ghost" id="resetBtn">↺ 重置</button>
+            <button class="ghost" id="autoBtn">自动演示：开</button>
+          </div>
+
+          <div class="divider"></div>
+          <label class="field-label">单张图片测试</label>
+          <div class="inline-row">
+            <input type="file" id="singleFile" accept="image/*" hidden>
+            <button class="ghost" id="singleBtn">选择单张图片</button>
+            <button class="ghost" id="cameraBtn">打开摄像头</button>
+          </div>
+          <button class="ghost" id="cropToggle" style="width:100%;margin-top:6px" disabled>手动框选牌面（检测失败时用）</button>
+          <div class="crop-panel hidden" id="cropPanel">
+            <div class="crop-wrap" id="cropWrap">
+              <img id="cropImg" alt="手动框选">
+              <div class="crop-box" id="cropBox"></div>
+            </div>
+            <div class="inline-row" style="margin-top:6px">
+              <button class="primary" id="applyCropBtn">用此框识别</button>
+              <button class="ghost" id="cancelCropBtn">取消</button>
+            </div>
+            <p class="micro">在图片上按住鼠标拖出一个矩形，必须包含整张牌（或至少完整角标）。</p>
+          </div>
+          <div class="inline-row camera-row hidden" id="cameraRow">
+            <img id="cameraImg" alt="摄像头画面">
+            <button class="ghost" id="captureBtn">拍照识别</button>
+            <button class="ghost" id="closeCameraBtn">关闭摄像头</button>
+          </div>
+
+          <label class="field-label">批量上传文件夹</label>
+          <div class="inline-row">
+            <input type="file" id="folderInput" webkitdirectory directory multiple hidden>
+            <button class="ghost" id="folderBtn">选择文件夹并批量识别</button>
+          </div>
+          <p class="micro">文件名以标签开头时（如 <code>AS_01.jpg</code>）会自动核对真实标签；否则只统计不判对错。</p>
+
+          <div class="gallery-head">
+            <label class="field-label">示例牌</label>
+            <span class="muted" id="gallerySourceLabel">合成</span>
+          </div>
+          <div class="gallery" id="gallery"></div>
+        </aside>
+
+        <!-- center pipeline -->
+        <section class="panel stage">
+          <div class="stage-head">
+            <div>
+              <span class="eyebrow">VISION PIPELINE</span>
+              <h2 id="stageTitle">等待开始</h2>
+            </div>
+            <div class="badge" id="resultBadge">空闲</div>
+          </div>
+
+          <div class="pipeline" id="pipeline">
+            <div class="step" data-step="input"><i>1</i><span>读取</span></div>
+            <div class="step" data-step="detect"><i>2</i><span>定位</span></div>
+            <div class="step" data-step="rectify"><i>3</i><span>校正</span></div>
+            <div class="step" data-step="roi"><i>4</i><span>角标</span></div>
+            <div class="step" data-step="classify"><i>5</i><span>分类</span></div>
+            <div class="step" data-step="decide"><i>6</i><span>拒识/接受</span></div>
+          </div>
+
+          <div class="image-grid">
+            <figure class="image-card"><div class="image-wrap"><img id="imgInput" alt="输入图"></div><figcaption>输入图 / 检测框</figcaption></figure>
+            <figure class="image-card"><div class="image-wrap"><img id="imgRect" alt="校正图"></div><figcaption>透视校正（210×294）</figcaption></figure>
+            <figure class="image-card small"><div class="image-wrap"><img id="imgTL" alt="左上角"></div><figcaption>左上角 ROI</figcaption></figure>
+            <figure class="image-card small"><div class="image-wrap"><img id="imgBR" alt="右下角"></div><figcaption>右下角 ROI</figcaption></figure>
+          </div>
+
+          <div class="current-result">
+            <div class="symbol" id="predSymbol">—</div>
+            <div class="result-main">
+              <div class="pred-code" id="predCode">尚未识别</div>
+              <div class="meta-line" id="predMeta">选择批次并点击“开始识别”</div>
+              <div class="score-line"><span>分数</span><div class="score-bar"><i id="scoreFill"></i></div><b id="scoreValue">—</b></div>
+            </div>
+            <div class="decision" id="decisionBox">—</div>
+          </div>
+
+          <div class="top5" id="top5"></div>
+          <div class="ood-box hidden" id="oodBox">
+            <div><b>未见过的牌面设计</b><span id="oodReason">模板相似度低，不能强行按 52 类输出。</span></div>
+            <div class="inline-row">
+              <input type="text" id="enrollLabel" placeholder="输入真实标签，如 7S" maxlength="3">
+              <button class="primary" id="enrollBtn">登记当前牌为新模板</button>
+            </div>
+            <p class="micro">登记后会加入 `data/templates`，下次同一牌面设计可用模板匹配识别；不会伪造当前批次结果。</p>
+          </div>
+          <div class="stage-note" id="stageNote">这是本地演示系统：Joker 为模拟批次事件；机械分拣未接入。</div>
+          <div class="loading" id="loading"><div class="spinner"></div><span>处理中…</span></div>
+        </section>
+
+        <!-- right result -->
+        <aside class="panel side">
+          <div class="panel-head"><h2>当前结果</h2><span class="hint" id="recordTime">—</span></div>
+          <div class="kv" id="resultMeta">
+            <div><span>模型</span><b>—</b></div>
+            <div><span>定位</span><b>—</b></div>
+            <div><span>耗时</span><b>—</b></div>
+            <div><span>接受</span><b>—</b></div>
+            <div><span>分拣(模拟)</span><b>—</b></div>
+            <div><span>原因</span><b>—</b></div>
+          </div>
+          <div class="panel-head" style="margin-top:16px"><h2>最近识别</h2><span class="hint">点击查看</span></div>
+          <div class="recent" id="recentList"><p class="empty">暂无记录</p></div>
+        </aside>
+      </div>
+
+      <!-- batch dashboard -->
+      <section class="panel batch">
+        <div class="batch-head">
+          <div>
+            <span class="eyebrow">BATCH STATUS</span>
+            <h2>批次统计与牌组分布</h2>
+            <p class="muted" id="batchSubtitle">尚未开始批次</p>
+          </div>
+          <div class="batch-actions">
+            <button class="ghost" id="injectDuplicate">注入重复牌</button>
+            <button class="ghost" id="injectBlank">注入失败图</button>
+            <button class="ghost" id="injectJoker">补录模拟 Joker</button>
+            <button class="primary" id="exportBtn">导出批次结果</button>
+          </div>
+        </div>
+
+        <div class="stat-grid">
+          <div class="stat"><span>已处理</span><b id="stProcessed">0</b><i id="stProcessedSub">/ 0</i></div>
+          <div class="stat good"><span>已确认</span><b id="stAccepted">0</b><i>张</i></div>
+          <div class="stat warn"><span>待确认</span><b id="stUnresolved">0</b><i>拒识 / 失败</i></div>
+          <div class="stat warn"><span>拒识</span><b id="stRejected">0</b><i>张</i></div>
+          <div class="stat bad"><span>处理失败</span><b id="stFailed">0</b><i>张</i></div>
+          <div class="stat"><span>剩余</span><b id="stPending">0</b><i>张</i></div>
+          <div class="stat"><span>重复异常</span><b id="stDuplicates">0</b><i>次</i></div>
+          <div class="stat"><span>Joker</span><b id="stJokers">0</b><i id="stJokerSub">/ 0</i></div>
+        </div>
+
+        <div class="slot-grid">
+          <div class="slot-card a"><span>A 槽 · 第一套重建</span><b id="slotA">0</b><i id="slotASub">/ 0</i></div>
+          <div class="slot-card b"><span>B 槽 · 第二套重建</span><b id="slotB">0</b><i id="slotBSub">/ 0</i></div>
+          <div class="slot-card review"><span>复核槽</span><b id="slotReview">0</b><i>拒识 / 重复 / 失败</i></div>
+          <div class="slot-note">规则：同一标签第一次确认 → A；第二次确认 → B；第三次 / UNKNOWN → 复核。两副牌混洗时，A/B 是重建出的两套，不是物理来源。</div>
+        </div>
+
+        <div class="progress-wrap"><div class="progress"><i id="batchProgress"></i></div><b id="batchPercent">0%</b></div>
+        <div class="batch-status" id="batchStatus">尚未开始</div>
+
+        <div class="deck-wrap">
+          <div class="deck-grid" id="deckGrid"></div>
+          <div class="deck-legend">
+            <span><i class="dot absent"></i>未出现 0/期望</span>
+            <span><i class="dot partial"></i>部分</span>
+            <span><i class="dot complete"></i>已齐</span>
+            <span><i class="dot extra"></i>重复/超量</span>
+            <span>格子文字为“已确认/期望”，期望由批次配置决定。</span>
+          </div>
+        </div>
+        <div class="missing" id="missingBox"></div>
+      </section>
+    </section>
+
+    <!-- ============================ EXPERIMENTS ============================ -->
+    <section class="page" id="page-experiments">
+      <div class="panel">
+        <div class="page-head">
+          <div><span class="eyebrow">EXPERIMENTS</span><h2>模型对比与实验结果</h2>
+            <p class="muted">来自本机实际运行的历史结果；不是界面实时重训。混淆矩阵与 CSV 保留在 outputs/eval。</p></div>
+          <div class="tabs" id="metricTabs">
+            <button data-split="jackfurby_test" class="active">合成测试</button>
+            <button data-split="real52_test">真实照片</button>
+          </div>
+        </div>
+        <div class="model-cards" id="modelCards"></div>
+        <div class="table-wrap">
+          <table class="data-table" id="compareTable">
+            <thead><tr><th>模型</th><th>Top-1</th><th>Macro P</th><th>Macro R</th><th>Macro F1</th><th>Top-5</th><th>点数准确率</th><th>花色准确率</th><th>平均耗时</th></tr></thead>
+            <tbody></tbody>
+          </table>
+        </div>
+        <p class="calib" id="ensembleSummary"></p>
+        <div class="experiment-grid">
+          <div class="exp-card">
+            <h3>混淆矩阵</h3>
+            <div class="inline-row">
+              <select id="cmModel"><option value="cnn">CNN</option><option value="hog_svm">HOG+SVM</option><option value="template">模板</option></select>
+              <select id="cmSplit"><option value="jackfurby_test">合成测试</option><option value="real52_test">真实照片</option></select>
+            </div>
+            <img id="cmImage" class="cm-image" alt="混淆矩阵">
+          </div>
+          <div class="exp-card">
+            <h3>阈值校准（val 95% 覆盖率）</h3>
+            <div id="calibration" class="calib"></div>
+            <h3 style="margin-top:16px">数据与划分</h3>
+            <div id="datasetInfo" class="mini-list"></div>
+          </div>
+        </div>
+        <div class="error-links" id="errorLinks"></div>
+      </div>
+    </section>
+
+    <!-- ============================ LOGS ============================ -->
+    <section class="page" id="page-logs">
+      <div class="panel">
+        <div class="page-head">
+          <div><span class="eyebrow">RECORDS</span><h2>识别日志与错误复核</h2>
+            <p class="muted">点击任意记录查看原图、校正图、双角 ROI 和诊断信息。</p></div>
+          <div class="inline-row">
+            <select id="logFilter">
+              <option value="all">全部</option>
+              <option value="accepted">仅接受</option>
+              <option value="rejected">仅拒识</option>
+              <option value="duplicate">重复牌</option>
+              <option value="failed">处理失败</option>
+            </select>
+            <button class="ghost" id="exportLogsBtn">导出日志 CSV</button>
+            <button class="ghost" id="exportBatchJson">导出批次 JSON</button>
+          </div>
+        </div>
+        <div class="table-wrap logs-wrap">
+          <table class="data-table" id="logTable">
+            <thead><tr><th>#</th><th>时间</th><th>缩略图</th><th>预测</th><th>真实</th><th>模型</th><th>分数</th><th>接受</th><th>原因</th><th>耗时</th></tr></thead>
+            <tbody></tbody>
+          </table>
+        </div>
+        <p class="empty" id="logEmpty">暂无日志。请先运行批次或单张识别。</p>
+      </div>
+    </section>
+
+    <!-- ============================ GUIDE ============================ -->
+    <section class="page" id="page-guide">
+      <div class="panel guide">
+        <span class="eyebrow">GUIDE</span>
+        <h2>使用说明与验收路径</h2>
+        <div class="guide-grid">
+          <div>
+            <h3>1. 启动</h3>
+            <pre>python -m pip install -r requirements.txt
+python demo_app.py</pre>
+            <p>浏览器打开 <code>http://127.0.0.1:7860</code>。模型首次加载约 3–8 秒，页面左上会显示状态。</p>
+            <h3>2. 推荐演示流程</h3>
+            <ol>
+              <li>批次选择“两副无王（104 张）”，模型选 HOG+SVM。</li>
+              <li>关闭拒识（或保留阈值）点击“开始识别”，系统逐张执行真实推理。</li>
+              <li>观察中央预处理 6 步、右侧结果、底部 104 张牌组分布。</li>
+              <li>点击“注入重复牌”演示重复异常；点击“注入失败图”演示拒识/失败。</li>
+              <li>切换“模型实验”查看真实混淆矩阵；在“日志与导出”导出 CSV/JSON。</li>
+            </ol>
+            <h3>3. 批次说明</h3>
+            <p>单副 54 / 两副 108 需要 Joker。当前没有 Joker 训练数据，因此批次中的 Joker 是<strong>明确标注的模拟事件</strong>，绝不冒充视觉识别结果。两副 104 无王模式完全由真实识别驱动。</p>
+          </div>
+          <div>
+            <h3>4. 已实现 / 未实现</h3>
+            <div class="tag-list">
+              <span class="tag done">OpenCV 预处理</span><span class="tag done">模板 / HOG / CNN</span>
+              <span class="tag done">拒识阈值</span><span class="tag done">批次/牌组校验</span>
+              <span class="tag done">导出 CSV/JSON</span><span class="tag done">模拟演示</span>
+              <span class="tag done">摄像头接口</span><span class="tag off">机械分拣/ESP32</span>
+            </div>
+            <p>机械分拣与 ESP32 未接入；界面保留控制状态与接口说明，不伪称已完成硬件控制。若电脑没有摄像头，点击“打开摄像头”会显示真实失败原因，图片/示例模式仍可完整演示。</p>
+            <h3>5. 数据与限制</h3>
+            <p>合成测试集 260 张（与训练同设计），真实照片 104 张（另一套牌设计、每类同一实体牌重复拍摄）。合成 98.85% 不代表真实牌 98.85%；真实照片 CNN 约 29.8%，说明跨设计域偏移严重。整机必须用团队自己的实体牌重新采集和验证。</p>
+            <h3>6. 目录</h3>
+            <pre>src/        预处理、分类器、批次管理
+models/     模板/HOG/CNN 模型
+data/       校正后数据、模板、报告
+outputs/    评估、混淆矩阵、导出
+tests/      自动化测试
+demo/       本界面（Flask + 前端）</pre>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <div class="modal hidden" id="recordModal">
+    <div class="modal-card">
+      <div class="modal-head"><h2 id="modalTitle">记录详情</h2><button class="ghost" id="modalClose">关闭</button></div>
+      <div class="modal-body">
+        <div class="modal-images">
+          <figure><img id="modalInput" alt="原图"><figcaption>输入 / 检测</figcaption></figure>
+          <figure><img id="modalRect" alt="校正图"><figcaption>校正</figcaption></figure>
+          <figure><img id="modalTL" alt="左上角"><figcaption>左上角 ROI</figcaption></figure>
+          <figure><img id="modalBR" alt="右下角"><figcaption>右下角 ROI</figcaption></figure>
+        </div>
+        <pre id="modalJson" class="json"></pre>
+        <div class="inline-row" style="margin-top:10px">
+          <input type="text" id="correctLabel" placeholder="人工修正为：52 类标签，如 7S" maxlength="3">
+          <button class="primary" id="correctBtn">保存人工修正</button>
+        </div>
+        <p class="micro">人工修正只改当前记录与批次计数；不会重训模型，也不影响导出的历史实验结果。</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+  <script src="{{ url_for('static', filename='app.js') }}"></script>
+</body>
+</html>

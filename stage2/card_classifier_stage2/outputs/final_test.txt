@@ -1,0 +1,8 @@
+............
+----------------------------------------------------------------------
+Ran 12 tests in 1.668s
+
+OK
+[eval] unit: 3 images from C:\Users\Taoli\AppData\Local\Temp\tmpegeexf4y\test
+[eval] acc=1.0000 macroF1=0.0577 latency=3.2ms
+[eval] wrote metrics to C:\Users\Taoli\AppData\Local\Temp\tmpegeexf4y\out

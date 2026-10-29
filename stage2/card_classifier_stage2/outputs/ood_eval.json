@@ -1,0 +1,21 @@
+{
+  "threshold": 0.55,
+  "splits": {
+    "jackfurby_test": {
+      "n": 260,
+      "min": 0.371,
+      "median": 0.958,
+      "p90": 0.988,
+      "max": 1.0,
+      "ood_rate": 0.015
+    },
+    "real52_test": {
+      "n": 104,
+      "min": 0.165,
+      "median": 0.428,
+      "p90": 0.543,
+      "max": 0.655,
+      "ood_rate": 0.904
+    }
+  }
+}

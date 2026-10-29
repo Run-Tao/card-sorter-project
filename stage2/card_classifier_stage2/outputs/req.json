@@ -1,0 +1,1 @@
+﻿{"model":"ensemble","reject":false,"threshold":0.5,"ood_check":true,"sample":{"source":"synthetic","label":"AS","file":"9942.png"}}

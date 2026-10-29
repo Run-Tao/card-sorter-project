@@ -1,0 +1,8 @@
+﻿time,model,source,truth,label,best_label,score,accepted,correct,reason,latency_ms,detected,detection_method,batch_status
+17:01:20,hog_svm,synthetic,7D,7D,7D,0.9999999921609083,True,True,accepted,23.1,True,already_canonical,ACCEPTED
+17:01:20,hog_svm,synthetic,9H,9H,9H,1.0,True,True,accepted,43.9,True,already_canonical,ACCEPTED
+17:01:20,hog_svm,synthetic,8S,8S,8S,0.9987425153445338,True,True,accepted,24.9,True,already_canonical,ACCEPTED
+17:01:20,hog_svm,synthetic,5S,5S,5S,0.9999999999999996,True,True,accepted,32.8,True,already_canonical,ACCEPTED
+17:01:20,hog_svm,synthetic,JC,JC,JC,1.0,True,True,accepted,23.9,True,already_canonical,ACCEPTED
+17:01:20,hog_svm,duplicate test,JC,JC,JC,1.0,True,True,accepted,28.2,True,already_canonical,ACCEPTED
+17:01:21,none,simulated failure,,UNKNOWN,UNKNOWN,,False,,空白图像 / 定位失败演示,0.0,False,blank,REJECTED

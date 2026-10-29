@@ -1,0 +1,6 @@
+﻿image,truth,label,best_label,correct,score,margin,detected,top1,top2,top3,top4,top5,milliseconds
+D:\Run_Tao\card-sorter-project\stage2\card_classifier_stage2\data\processed\jackfurby\test\9H\8724.png,9H,10H,10H,False,0.4913974702358246,0.08636242151260376,True,10H,9H,8H,7H,10D,119.27
+D:\Run_Tao\card-sorter-project\stage2\card_classifier_stage2\data\processed\jackfurby\test\9H\8725.png,9H,10H,10H,False,0.49421054124832153,0.0865592360496521,True,10H,9H,8H,7H,10D,168.4
+D:\Run_Tao\card-sorter-project\stage2\card_classifier_stage2\data\processed\jackfurby\test\9H\8726.png,9H,10H,10H,False,0.4961891174316406,0.0887342095375061,True,10H,9H,8H,7H,10D,141.78
+D:\Run_Tao\card-sorter-project\stage2\card_classifier_stage2\data\processed\jackfurby\test\9H\8727.png,9H,10H,10H,False,0.4996704161167145,0.09503087401390076,True,10H,9H,8H,7H,10D,50.42
+D:\Run_Tao\card-sorter-project\stage2\card_classifier_stage2\data\processed\jackfurby\test\9H\8728.png,9H,10H,10H,False,0.5009276866912842,0.09290796518325806,True,10H,9H,8H,7H,10D,41.8

@@ -1,0 +1,107 @@
+{
+  "template": {
+    "model": "template",
+    "val_size": 260,
+    "val_accuracy": 0.4269230769230769,
+    "thresholds": {
+      "coverage_0.99": {
+        "threshold": 0.4436963295936585,
+        "val_coverage": 0.9884615384615385,
+        "val_accepted_accuracy": 0.43190661478599224
+      },
+      "coverage_0.95": {
+        "threshold": 0.627857849001885,
+        "val_coverage": 0.95,
+        "val_accepted_accuracy": 0.4493927125506073
+      },
+      "coverage_0.90": {
+        "threshold": 0.7896580398082733,
+        "val_coverage": 0.9,
+        "val_accepted_accuracy": 0.47435897435897434
+      }
+    },
+    "chosen_threshold": 0.627857849001885,
+    "jackfurby_test": {
+      "n": 260,
+      "coverage": 0.9692307692307692,
+      "accepted_accuracy": 0.42857142857142855,
+      "all_accuracy": 0.4153846153846154
+    },
+    "real52_test": {
+      "n": 104,
+      "coverage": 0.0,
+      "accepted_accuracy": 0.0,
+      "all_accuracy": 0.0
+    }
+  },
+  "hog_svm": {
+    "model": "hog_svm",
+    "val_size": 260,
+    "val_accuracy": 1.0,
+    "thresholds": {
+      "coverage_0.99": {
+        "threshold": 0.9715115405976014,
+        "val_coverage": 0.9884615384615385,
+        "val_accepted_accuracy": 1.0
+      },
+      "coverage_0.95": {
+        "threshold": 0.994657381665881,
+        "val_coverage": 0.95,
+        "val_accepted_accuracy": 1.0
+      },
+      "coverage_0.90": {
+        "threshold": 0.9999235776322793,
+        "val_coverage": 0.9,
+        "val_accepted_accuracy": 1.0
+      }
+    },
+    "chosen_threshold": 0.994657381665881,
+    "jackfurby_test": {
+      "n": 260,
+      "coverage": 0.95,
+      "accepted_accuracy": 1.0,
+      "all_accuracy": 1.0
+    },
+    "real52_test": {
+      "n": 104,
+      "coverage": 0.7884615384615384,
+      "accepted_accuracy": 0.15853658536585366,
+      "all_accuracy": 0.1346153846153846
+    }
+  },
+  "cnn": {
+    "model": "cnn",
+    "val_size": 260,
+    "val_accuracy": 0.9807692307692307,
+    "thresholds": {
+      "coverage_0.99": {
+        "threshold": 0.21962348282337188,
+        "val_coverage": 0.9884615384615385,
+        "val_accepted_accuracy": 0.980544747081712
+      },
+      "coverage_0.95": {
+        "threshold": 0.2700634866952896,
+        "val_coverage": 0.95,
+        "val_accepted_accuracy": 0.979757085020243
+      },
+      "coverage_0.90": {
+        "threshold": 0.32092588543891903,
+        "val_coverage": 0.9,
+        "val_accepted_accuracy": 0.9786324786324786
+      }
+    },
+    "chosen_threshold": 0.2700634866952896,
+    "jackfurby_test": {
+      "n": 260,
+      "coverage": 0.9423076923076923,
+      "accepted_accuracy": 0.9795918367346939,
+      "all_accuracy": 0.9807692307692307
+    },
+    "real52_test": {
+      "n": 104,
+      "coverage": 0.7019230769230769,
+      "accepted_accuracy": 0.3150684931506849,
+      "all_accuracy": 0.2980769230769231
+    }
+  }
+}

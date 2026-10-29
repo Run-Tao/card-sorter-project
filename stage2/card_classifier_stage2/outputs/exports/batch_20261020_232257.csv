@@ -1,0 +1,2 @@
+﻿time,model,source,truth,label,best_label,score,accepted,correct,reason,latency_ms,detected,detection_method,batch_status
+23:22:57,hog_svm,synthetic,7D,7D,7D,0.9999999921609083,True,True,accepted,48.3,True,already_canonical,ACCEPTED

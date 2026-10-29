@@ -1,0 +1,17 @@
+{
+  "meta_accuracy": 1.0,
+  "splits": {
+    "jackfurby_test": {
+      "n": 260,
+      "accuracy": 1.0,
+      "coverage": 1.0,
+      "accepted_accuracy": 1.0
+    },
+    "real52_test": {
+      "n": 104,
+      "accuracy": 0.057692307692307696,
+      "coverage": 0.14423076923076922,
+      "accepted_accuracy": 0.4
+    }
+  }
+}

@@ -1,0 +1,41 @@
+# ---- 大型数据与生成物（不入库，避免触发 GitHub 单文件 100 MB / 仓库体积限制）----
+
+# 数据集：原始/裁剪/模板图（约 950 MB）
+stage2/card_classifier_stage2/data/*
+!stage2/card_classifier_stage2/data/*.md
+
+# UI 冒烟测试产生的 Edge 浏览器缓存（约 218 MB）
+stage2/edge_*/
+stage2/card_classifier_stage2/outputs/edge_*
+
+# 人工上传与用户牌图
+stage2/card_classifier_stage2/outputs/uploads/
+stage2/card_classifier_stage2/outputs/user_cards/
+stage2/card_classifier_stage2/outputs/simulated/
+stage2/card_classifier_stage2/outputs/upload_test/
+
+# 打包产物（zip 单文件 58–112 MB，超出限制）
+*.zip
+stage2/card_classifier_stage2/build/
+stage2/card_classifier_stage2/dist/
+stage2/card_classifier_stage2/*.exe
+
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+.venv/
+venv/
+.pytest_cache/
+.mypy_cache/
+*.egg-info/
+
+# 编辑器与系统文件
+.vscode/
+.idea/
+Thumbs.db
+desktop.ini
+.DS_Store
+
+# 日志
+*.log

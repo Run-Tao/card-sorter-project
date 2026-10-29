@@ -1,0 +1,20 @@
+.venv/
+__pycache__/
+*.py[cod]
+
+# 生成物：浏览器缓存、上传、打包产物不入库
+outputs/edge_*/
+outputs/uploads/
+outputs/user_cards/
+outputs/simulated/
+outputs/upload_test/
+build/
+dist/
+*.exe
+*.zip
+
+# 保留评估与对比指标（体积小、可追溯）
+!outputs/eval/
+!outputs/comparison/
+!outputs/calibration/
+!outputs/exports/

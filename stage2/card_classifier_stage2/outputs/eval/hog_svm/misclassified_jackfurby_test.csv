@@ -1,0 +1,4 @@
+﻿image,truth,label,best_label,correct,score,margin,detected,top1,top2,top3,top4,top5,milliseconds
+D:\Run_Tao\card-sorter-project\stage2\card_classifier_stage2\data\processed\jackfurby\test\2S\7162.png,2S,2H,2H,False,0.4861858631268596,0.11466359683665267,True,2H,4H,AD,AH,9S,35.83
+D:\Run_Tao\card-sorter-project\stage2\card_classifier_stage2\data\processed\jackfurby\test\AC\9768.png,AC,7C,7C,False,0.5166245889662077,0.05883607691106113,True,7C,4H,2H,9S,3H,29.33
+D:\Run_Tao\card-sorter-project\stage2\card_classifier_stage2\data\processed\jackfurby\test\JC\9076.png,JC,2H,2H,False,0.654711834577132,0.45026517851695014,True,2H,AH,AD,4H,3H,31.62
